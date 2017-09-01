@@ -2,7 +2,7 @@
 
 Check forward DNS, backward DNS and ping response of a server using python
 
-##Prerequisite
+###Prerequisite
 
 Python should be installed in your local machine.
 If not you can download and install from [here](https://www.python.org/)
@@ -18,7 +18,7 @@ a.execute()
 
 ```
 
-##Output
+###Output
 
 ```
 Enter 1 ---> Forward DNS
