@@ -94,6 +94,3 @@ class DNS:
         for line in content:
             yield line.strip()
 
-
-a = DNS("dns.txt")
-a.execute()
