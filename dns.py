@@ -1,7 +1,8 @@
 import os
 from utils import (get_forward_dns,
                    get_reverse_dns,
-                   find_ping_response)
+                   find_ping_response,
+                   find_forward_backward_ping)
 
 
 class DNS:
@@ -42,6 +43,7 @@ class DNS:
         function_to_call = {1: self._find_forward_dns,
                             2: self._find_reverse_dns,
                             3: self._find_ping_response,
+                            4: self._find_all
                            }
         function_to_call[input_](data)
         exit(0)
@@ -65,6 +67,12 @@ class DNS:
             print "%s is %s" %(hostname_or_ip, ping_status)
 
     @staticmethod
+    def _find_all(data):
+        for server in data:
+            forward_dns, backward_dns, both_are_same, ping = find_forward_backward_ping(server)
+            print "%s -----------> %s <---> %s <---> %s <----> %s" %(server, forward_dns, backward_dns, both_are_same, ping)
+
+    @staticmethod
     def _get_input_from_user():
         # Infinite loop is used here bcz we need to make sure that the user should enter 1, 2, 3.
         # Other than this the prompt will ask again
@@ -74,6 +82,7 @@ class DNS:
                     "Enter 1 ---> Forward DNS \n"
                     "Enter 2 ----> Reverse DNS \n"
                     "Enter 3 ---> Ping Response \n"
+                    "Enter 4 ---> Find all 3(Make sure that you entered only fqdn in the file) \n"
                     "Enter Your Input "))
             except ValueError:
                 continue
@@ -94,3 +103,6 @@ class DNS:
         for line in content:
             yield line.strip()
 
+
+a = DNS("dns.txt")
+a.execute()

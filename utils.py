@@ -12,7 +12,6 @@ def get_forward_dns(servers):
     :param servers: collection of hostname
     :return: Ip corresponds to hostname
     """
-
     for hostname in servers:
         try:
             ip = socket.gethostbyname(hostname)
@@ -53,7 +52,7 @@ def find_ping_response(data):
         with open(os.devnull, 'w') as DEVNULL:
             try:
                 subprocess.check_call(
-                    ['ping', hostname_or_ip],
+                    ['ping', '-c', '3', hostname_or_ip],
                     stdout=DEVNULL,  # suppress output
                     stderr=DEVNULL
                 )
@@ -62,3 +61,24 @@ def find_ping_response(data):
                 ping_status = "Unreachable"
 
         yield (hostname_or_ip, ping_status)
+
+
+
+def find_forward_backward_ping(server_name):
+    """
+    To find all the details.
+    :param servers:
+    :return:
+    """
+
+    forward_dns = get_forward_dns([server_name]).next()
+    if forward_dns[1] != "No Ip Address":
+        backward_dns = get_reverse_dns([forward_dns[1]]).next()[1]
+
+    else:
+        backward_dns = "No Forward DNS"
+
+    is_both_forward_backward_same, ping = server_name.lower() == backward_dns, find_ping_response([server_name]).next()[
+        1]
+
+    return forward_dns[1], backward_dns, is_both_forward_backward_same, ping
