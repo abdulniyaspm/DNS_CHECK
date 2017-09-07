@@ -1,6 +1,7 @@
 import os
-import socket
-import subprocess
+from utils import (get_forward_dns,
+                   get_reverse_dns,
+                   find_ping_response)
 
 
 class DNS:
@@ -18,6 +19,7 @@ class DNS:
         :param file_name:
         :param path:
         """
+        self.file_name = file_name
         self.abs_path = self._find_file_path(file_name, path)
         if not self.abs_path:
             raise IOError("%s not found in %s" % (file_name, path))
@@ -37,56 +39,29 @@ class DNS:
     def execute(self):
         input_ = self._get_input_from_user()
         data = self._read_from_file()
-        {1: self._find_forward_dns,
-                2: self._find_reverse_dns,
-                3: self._find_ping_response}[input_](data)
+        function_to_call = {1: self._find_forward_dns,
+                            2: self._find_reverse_dns,
+                            3: self._find_ping_response,
+                           }
+        function_to_call[input_](data)
         exit(0)
 
     @staticmethod
-    def _find_forward_dns(data):
-        """
-        Function to find the forward DNS
-        """
-        for hostname in data:
-            try:
-                ip = socket.gethostbyname(hostname)
-            except (socket.gaierror, socket.herror):
-                ip = "No Ip Address"
-            print "{0} ---------> {1}".format(hostname, ip)
+    def _find_forward_dns(servers):
+
+        for hostname, ip in get_forward_dns(servers):
+            print "%s ----> %s" %(hostname, ip)
 
     @staticmethod
-    def _find_reverse_dns(data):
-        """
-        Function to find the backward DNS
-        :param data:
-        :return:
-        """
-        for ip in data:
-            try:
-                hostname = socket.gethostbyaddr(ip)[0]
-            except (socket.gaierror, socket.herror):
-                hostname = "No hostname"
+    def _find_reverse_dns(ips):
 
-            print "{0} ---------> {1}".format(ip, hostname)
+        for ip, hostname in get_reverse_dns(ips):
+            print "%s ---------> %s".format(ip, hostname)
 
     @staticmethod
-    def _find_ping_response(data):
-        """
-        Function to find the ping response.
-        :param data:
-        :return:
-        """
-        for hostname_or_ip in data:
-            with open(os.devnull, 'w') as DEVNULL:
-                try:
-                    subprocess.check_call(
-                        ['ping', '-c', '3', hostname_or_ip],
-                        stdout=DEVNULL,  # suppress output
-                        stderr=DEVNULL
-                    )
-                    ping_status = "Active"
-                except subprocess.CalledProcessError:
-                    ping_status = "Unreachable"
+    def _find_ping_response(hostname_or_ips):
+
+        for hostname_or_ip, ping_status in find_ping_response(hostname_or_ips):
             print "%s is %s" %(hostname_or_ip, ping_status)
 
     @staticmethod
@@ -119,3 +94,6 @@ class DNS:
         for line in content:
             yield line.strip()
 
+
+a = DNS("dns.txt")
+a.execute()
